@@ -1,11 +1,8 @@
 import requests
 import json
-import sys
 
 
 class Dogs:
-    base_url = "https://dog.ceo/api"
-
     def __init__(self):
         self.images = []
         self.image_url = None
@@ -25,20 +22,20 @@ class Dogs:
         """Получить все изображения породы и под-пород"""
         self.images = []
 
-        print(f" Проверяем под-породы для '{breed}'...")
+        print(f"🔍 Проверяем под-породы для '{breed}'...")
 
         # 1. Сначала проверяем есть ли под-породы
-        subbreeds_response = requests.get(f"{self.base_url}/breed/{breed}/list")
+        subbreeds_response = requests.get(f"https://dog.ceo/api/breed/{breed}/list")
 
         if subbreeds_response.json()["status"] != "success":
-            print("Такая порода не найдена")
+            print("❌ Порода не найдена")
             return
 
         subbreeds = subbreeds_response.json()["message"]
 
         if subbreeds:
             # ЕСТЬ под-породы - загружаем каждую
-            print(f" Найдены под-породы: {', '.join(subbreeds)}")
+            print(f"🎯 Найдены под-породы: {', '.join(subbreeds)}")
             for subbreed in subbreeds:
                 self._download_subbreed_images(breed, subbreed)
         else:
@@ -48,7 +45,7 @@ class Dogs:
 
     def _download_breed_images(self, breed):
         """Загрузить изображения основной породы (без под-пород)"""
-        response = requests.get(f"{self.base_url}/breed/{breed}/images")
+        response = requests.get(f"https://dog.ceo/api/breed/{breed}/images")
 
         if response.json()["status"] == "success":
             images = response.json()["message"]
@@ -66,7 +63,7 @@ class Dogs:
 
     def _download_subbreed_images(self, breed, subbreed):
         """Загрузить изображения под-породы"""
-        response = requests.get(f"{self.base_url}/breed/{breed}/{subbreed}/images")
+        response = requests.get(f"https://dog.ceo/api/breed/{breed}/{subbreed}/images")
 
         if response.json()["status"] == "success":
             images = response.json()["message"]
@@ -86,4 +83,4 @@ class Dogs:
         """Сохранить информацию в JSON"""
         with open(filename, "w") as f:
             json.dump(self.images, f, indent=2)
-        print(f"Информация о породе сохранена в {filename}")
+        print(f"💾 Информация сохранена в {filename}")

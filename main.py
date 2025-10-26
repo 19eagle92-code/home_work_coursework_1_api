@@ -5,49 +5,56 @@ from tqdm import tqdm
 import time
 from dog_parser import Dogs
 from YDapi_plugs import YandexDiskApiPlugin
-
-# from fff import YandexDiskApiPlugin
-
-
-# if __name__ == "__main__":
-#     # Запрашиваем породу и токен у пользователя
-#     breed = input("Введите породу собаки на английском: ")
-#     # token = input(str("введите(вставьте) ваш токен:"))
-#     token = "y0__xCqldXFBBjblgMg2LyK8xQwmaadnQgCBWderre4Qwhn1CRw7zGWciFW8Q"
-
-#     # Создаем объект класса Dogs
-#     dog = Dogs(breed)
-#     yd = YandexDiskApiPlugin(token)
-
-#     # Получаем и сохраняем изображение
-#     dog.get_random_picture()
-#     dog.save_pic()
-#     yd.create_folder()
-#     yd.upload_files()
+import random
 
 
 def main():
-    # Получаем породу собаки
-    # breed = input("Введите породу собаки: ")
-    breed = "corgi"
-    # Ищем изображение собаки
-    dog = Dogs(breed)
-    dog.get_random_picture()
-    print(f"Найдено изображение: {dog.filename}")
+    print("Скачиваем фото собок на ЯндексДиск ")
 
-    # Скачиваем изображение
-    # dog.save_pic()
+    # Токен
+    token = input("Введите ВАШ токен ЯндексДиска")
 
-    # Загружаем на Яндекс.Диск
-    # token = input("Введите токен Яндекс.Диска: ")
-    token = "y0__xCqldXFBBjblgMg2LyK8xQwmaadnQgCBWderre4Qwhn1CRw7zGWciFW8Q"
+    # Ввод породы
+    breed = input("Введите породу собаки(на английском): ")
+
+    # Получаем фото
+    dogs = Dogs()
+    dogs.get_breed_images(breed)
+
+    print(f"Всего фото: {len(dogs.images)}")
+
+    count_img = int(input("сколько фотографий хотите сохранить"))
+
+    # Выбираем случайные фотографии по количеству
+    if len(dogs.images) > count_img:
+        images = random.sample(dogs.images, count_img)
+    else:
+        images = dogs.images
+
+    print(f"Загружаем СЛУЧАЙНЫЕ {len(images)} фото")
+
+    # Яндекс.Диск
     yandex = YandexDiskApiPlugin(token)
+    folder_name = f"dogs_{breed}"
 
-    # Создаем папку и загружаем
-    yandex.create_folder("dogs")
-    yandex.url_upload("dogs", dog.filename, dog.image_url)
-    # if yandex.upload_files(dog.filename):
-    #     print(f"✅ Изображение {dog.filename} загружено на Яндекс.Диск")
+    if not yandex.create_folder(folder_name):
+        return
+
+    # Загружаем с tqdm
+    print(f"\nЗагрузка на Яндекс.Диск:")
+
+    successful = 0
+    for image in tqdm(images, desc="Загрузка", unit="файл"):
+        if yandex.upload_from_url(folder_name, image["filename"], image["url"]):
+            successful += 1
+        time.sleep(0.1)
+
+    # Сохраняем инфо
+    dogs.save_json()
+
+    # Итоги
+    print(f"Готово!")
+    print(f"✅ Успешно: {successful}/{len(images)}")
 
 
 if __name__ == "__main__":

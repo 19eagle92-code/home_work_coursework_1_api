@@ -42,12 +42,9 @@ class YandexDiskApiPlugin:
 
         with open(f"{filename}", "rb") as f:
             upload_response = requests.put(upload_url, files={"file": f})
-
-        with open(f"{filename}", "rb") as f:
-            upload_response = requests.put(upload_url, files={"file": f})
         return upload_response.status_code == 201
 
-    def url_upload(self, folder_name, filename, image_url):
+    def upload_from_url(self, folder_name, filename, image_url):
         """Загрузка файла на яндекс диск по URL"""
         params = {"path": f"{folder_name}/{filename}", "url": image_url}
         response = requests.post(
