@@ -22,7 +22,7 @@ class YandexDiskApiPlugin:
             507: "Недостаточно места на диске",
         }
         notice = status_codes.get(
-            response.status_code, f"❌ Неизвестная ошибка: {response.status_code}"
+            response.status_code, f" Неизвестная ошибка: {response.status_code}"
         )
         print(notice)
         return response.status_code == 201
