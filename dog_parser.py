@@ -7,9 +7,70 @@ class Dogs:
     base_url = "https://dog.ceo/api"
 
     def __init__(self):
-        self.images = []
+        # self.images = []
         self.image_url = None
-        self.filename = None
+        # self.filename = None
+
+    def get_one_image_per_subbreed(self, breed):
+        """Получить по одному изображению для каждой под-породы"""
+        self.images = []
+
+        print(f"Проверяем под-породы для '{breed}'...")
+
+        # Проверяем есть ли под-породы
+        subbreeds_response = requests.get(f"{self.base_url}/breed/{breed}/list")
+
+        if subbreeds_response.json()["status"] != "success":
+            print("Такая порода не найдена")
+            return
+
+        subbreeds = subbreeds_response.json()["message"]
+
+        if subbreeds:
+            # ЕСТЬ под-породы - загружаем по одному изображению для каждой
+            print(f"Найдены под-породы: {', '.join(subbreeds)}")
+            for subbreed in subbreeds:
+                self._download_one_subbreed_image(breed, subbreed)
+        else:
+            # НЕТ под-пород - загружаем одно изображение основной породы
+            print(f"Под-породы не найдены, загружаем основную породу...")
+            self._download_one_breed_image(breed)
+
+    def _download_one_breed_image(self, breed):
+        """Загрузить одно случайное изображение основной породы"""
+        response = requests.get(f"{self.base_url}/breed/{breed}/images/random")
+
+        if response.json()["status"] == "success":
+            image_url = response.json()["message"]
+            filename = image_url.split("/")[-1]
+            self.images.append(
+                {
+                    "breed": breed,
+                    "subbreed": None,
+                    "url": image_url,
+                    "filename": f"{breed}_{filename}",
+                }
+            )
+            print(f"✅ Загружено 1 фото основной породы {breed}")
+
+    def _download_one_subbreed_image(self, breed, subbreed):
+        """Загрузить одно случайное изображение под-породы"""
+        response = requests.get(
+            f"{self.base_url}/breed/{breed}/{subbreed}/images/random"
+        )
+
+        if response.json()["status"] == "success":
+            image_url = response.json()["message"]
+            filename = image_url.split("/")[-1]
+            self.images.append(
+                {
+                    "breed": breed,
+                    "subbreed": subbreed,
+                    "url": image_url,
+                    "filename": f"{breed}_{subbreed}_{filename}",
+                }
+            )
+            print(f"✅ Загружено 1 фото для под-породы {subbreed}")
 
     def get_random_picture(self):
         """Получить случайное изображение собаки"""

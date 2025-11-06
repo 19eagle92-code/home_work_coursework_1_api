@@ -5,7 +5,6 @@ from tqdm import tqdm
 import time
 from dog_parser import Dogs
 from YDapi_plugs import YandexDiskApiPlugin
-import random
 
 
 def main():
@@ -19,19 +18,11 @@ def main():
 
     # Получаем фото
     dogs = Dogs()
-    dogs.get_breed_images(breed)
+    dogs.get_one_image_per_subbreed(breed)
 
-    print(f"Всего фото: {len(dogs.images)}")
-
-    count_img = int(input("сколько фотографий хотите сохранить"))
-
-    # Выбираем случайные фотографии по количеству
-    if len(dogs.images) > count_img:
-        images = random.sample(dogs.images, count_img)
-    else:
-        images = dogs.images
-
-    print(f"Загружаем СЛУЧАЙНЫЕ {len(images)} фото")
+    if not dogs.images:
+        print("Не найдено изображений для загрузки")
+        return
 
     # Яндекс.Диск
     yandex = YandexDiskApiPlugin(token)
@@ -44,17 +35,17 @@ def main():
     print(f"\nЗагрузка на Яндекс.Диск:")
 
     successful = 0
-    for image in tqdm(images, desc="Загрузка", unit="файл"):
+    for image in tqdm(dogs.images, desc="Загрузка", unit="файл"):
         if yandex.upload_from_url(folder_name, image["filename"], image["url"]):
             successful += 1
         time.sleep(0.1)
 
-    # Сохраняем инфо
+    # Сохраняем информацию
     dogs.save_json()
 
-    # Итоги
+    # Итог
     print(f"Готово!")
-    print(f"✅ Успешно: {successful}/{len(images)}")
+    print(f"✅ Успешно загружено: {successful}/{len(dogs.images)}")
 
 
 if __name__ == "__main__":
